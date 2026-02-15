@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <locale.h>
 #include <string.h>
+#include <errno.h>
 #include "utils.c"
 
 #define TTHELP 0
@@ -34,8 +35,8 @@
 
 #define MATCH 0
 
-#define OR ||
-#define AND &&
+#define or ||
+#define and &&
 
 #define GENERATE_ARGV argv[1]
 #define GENERATE_STR "generate"
@@ -55,6 +56,11 @@
         - headify
 */
 
+
+// Global Variables
+
+FILE *c_file = NULL;
+FILE *h_file = NULL;
 
 
 const char *CONSTS_ARGC2[] = {"--help","-h"};
@@ -81,10 +87,10 @@ void remove_quote(char *str){
     printf("\nAfter quote:%s",str);
 }
 
-
 void show_help(){
     puts("Entrou no help!");
 }
+
 
 int main(int argc, char *argv[]){
     setlocale(LC_ALL,"");
@@ -103,7 +109,7 @@ int main(int argc, char *argv[]){
         if(argc == 2){
 
             // Tratando caso --help ou --h
-            if(strcmp(CONSTS_ARGC2[TTHELP],HELP_ARGV) == MATCH OR strcmp(CONSTS_ARGC2[THELP],HELP_ARGV) == MATCH){
+            if(strcmp(CONSTS_ARGC2[TTHELP],HELP_ARGV) == MATCH or strcmp(CONSTS_ARGC2[THELP],HELP_ARGV) == MATCH){
 
                 show_help();
 
@@ -140,6 +146,24 @@ int main(int argc, char *argv[]){
                 // Removing quotes from path's
                 remove_quote(OUT_H_ARGV);
                 remove_quote(SRC_C_ARGV);
+
+                // Open .c file
+                c_file = fopen(c_file,"r");
+        
+
+                if(!c_file){
+                    perror("headify-err: the .c file doesn't exist or doesn't have enough permissions to read.");
+                    goto end;
+                }
+
+                // if(!h_file){
+                //      perror("headify-err: the .h file doesn't exist or doesn't have enough permissions to read.");
+                //      goto end;
+                // }
+
+
+
+                
 
                 goto end;
 

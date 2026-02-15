@@ -1,0 +1,4 @@
+@function void foo(){};
+@struct struct name{};
+@extern int a = 0;
+

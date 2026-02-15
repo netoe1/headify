@@ -36,4 +36,43 @@ void to_lower_string(char str[]){
         str[i] = tolower(str[i]);
     }
 }
+
+int empty_line(char *s) {
+    while (*s) {
+        if (!isspace((unsigned char)*s))
+            return 0; 
+        s++;
+    }
+    return 1; 
+}
+
+void remove_substring(char *str, const char *remove) {
+
+    char *pos = strstr(str, remove);
+
+    if (pos) {
+        memmove(pos,
+                pos + strlen(remove),
+                strlen(pos + strlen(remove)) + 1);
+    }
+}
+
+void remove_char(char *str, char ch) {
+
+    char *src = str;
+    char *dst = str;
+
+    while (*src) {
+
+        if (*src != ch) {
+            *dst = *src;
+            dst++;
+        }
+
+        src++;
+    }
+
+    *dst = '\0';
+}
+
 #endif
