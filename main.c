@@ -29,6 +29,7 @@
 #include <string.h>
 #include <errno.h>
 #include "utils.c"
+#include "parser.c"
 
 #define TTHELP 0
 #define THELP 1
@@ -66,26 +67,7 @@ FILE *h_file = NULL;
 const char *CONSTS_ARGC2[] = {"--help","-h"};
 
 
-void trim_all_args(int argc,char *argv[]){
-    int i = 0;
-    for(i = 1;i < argc;i++){
-         argv[i] = trim(argv[i]);
-    }
-}
 
-void remove_quote(char *str){
-
-    printf("\nBefore quote: %s",str);
-
-    for(int i = 0; i < sizeof(str);i++){
-        if(str[i] == '"'){
-            str[i] = ' ';
-        }
-    }
-
-    str = trim(str);
-    printf("\nAfter quote:%s",str);
-}
 
 void show_help(){
     puts("Entrou no help!");
@@ -148,18 +130,14 @@ int main(int argc, char *argv[]){
                 remove_quote(SRC_C_ARGV);
 
                 // Open .c file
-                c_file = fopen(c_file,"r");
+                c_file = fopen(SRC_C_ARGV,"r");
         
-
                 if(!c_file){
                     perror("headify-err: the .c file doesn't exist or doesn't have enough permissions to read.");
                     goto end;
-                }
+                }  
 
-                // if(!h_file){
-                //      perror("headify-err: the .h file doesn't exist or doesn't have enough permissions to read.");
-                //      goto end;
-                // }
+                parse(c_file);
 
 
 
