@@ -79,12 +79,13 @@ int empty_line(char *s) {
 void remove_substring(char *str, const char *remove) {
 
     char *pos = strstr(str, remove);
+    if (!pos) return;
 
-    if (pos) {
-        memmove(pos,
-                pos + strlen(remove),
-                strlen(pos + strlen(remove)) + 1);
-    }
+    size_t len = strlen(remove);
+
+    memmove(pos,
+            pos + len,
+            strlen(pos + len) + 1);
 }
 
 void remove_char_if_exists(char *str, char ch) {
@@ -126,4 +127,8 @@ void trim_all_args(int argc,char *argv[]){
     }
 }
 
+int starts_with(const char *prefix, const char *str){
+    size_t len = strlen(prefix);
+    return strncmp(prefix, str, len);
+}
 #endif

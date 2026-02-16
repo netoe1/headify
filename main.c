@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  *
-
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,20 +30,24 @@
 #include "utils.h"
 #include "parser.h"
 
-#define TTHELP 0
-#define THELP 1
 
-#define MATCH 0
 
 #define or ||
 #define and &&
 
+// Alias
+#define LICENSE_ARGV argv[1]
 #define GENERATE_ARGV argv[1]
-#define GENERATE_STR "generate"
 #define SRC_C_ARGV argv[2]
 #define OUT_H_ARGV argv[3]
 #define HELP_ARGV argv[1]
+#define MATCH 0
 
+// STR
+#define HELP_STR1 "--help"
+#define HELP_STR2 "-h"
+#define LICENSE_STR "--LICENSE"
+#define GENERATE_STR "generate"
 
 /*
     DEFINING BEHAVIOR:
@@ -63,10 +66,49 @@
 FILE *c_file = NULL;
 FILE *h_file = NULL;
 
-const char *CONSTS_ARGC2[] = {"--help","-h"};
+const char *help_message =  
+"headify - just drag your .c file!\n"
+"autor: Ely Torres Neto (netoe1)\tgithub.com/netoe1\n"
+"==>HELP==============================================================================\n"
+"   --help or -h                          Show valid lines for usage!\n"
+"   --LICENSE                             Display the license, this is currently MIT.\n"
+"   headify generate <src.c> <out.h>      Generates the header file by src.c\n"
+;
+
+const char *LICENSE =
+"\n"
+"MIT License\n"
+"\n"
+"Copyright (c) 2026 Ely Torres Neto\n"
+"\n"
+"Permission is hereby granted, free of charge, to any person obtaining a copy\n"
+"of this software and associated documentation files (the \"Software\"), to deal\n"
+"in the Software without restriction, including without limitation the rights\n"
+"to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n"
+"copies of the Software, and to permit persons to whom the Software is\n"
+"furnished to do so, subject to the following conditions:\n"
+"\n"
+"The above copyright notice and this permission notice shall be included in all\n"
+"copies or substantial portions of the Software.\n"
+"\n"
+"THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n"
+"IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n"
+"FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n"
+"AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n"
+"LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n"
+"OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n"
+"SOFTWARE.\n"
+"\n"
+"\n";
+
+
 
 void show_help(){
-    puts("Entrou no help!");
+    puts(help_message);
+}
+
+void show_license(){
+    puts(LICENSE);
 }
 
 
@@ -80,19 +122,25 @@ int main(int argc, char *argv[]){
         if(argc == 1){
 
             puts("headify-err(c1): command not recognized! Check --help!");
-
             return EXIT_FAILURE;
         }
 
         if(argc == 2){
 
             // Tratando caso --help ou --h
-            if(strcmp(CONSTS_ARGC2[TTHELP],HELP_ARGV) == MATCH or strcmp(CONSTS_ARGC2[THELP],HELP_ARGV) == MATCH){
+            if(
+                strcmp(HELP_STR1,HELP_ARGV) == MATCH or 
+                strcmp(HELP_STR2,HELP_ARGV) == MATCH){
 
                 show_help();
 
                 goto end;
             }
+            
+            if(strcmp(LICENSE_STR,LICENSE_ARGV) == MATCH){
+                show_license();
+                goto end;
+            }   
 
             puts("headify-err(c2): command not recognized! Check --help!");
             goto err;
@@ -112,12 +160,12 @@ int main(int argc, char *argv[]){
                 // Verifica se o SRC_C possui o .c
 
                 if(strstr(SRC_C_ARGV,".c") == NULL){
-                    puts("headify-err: not recognized file with .c at <src_c> field.");
+                    puts("headify-err:(c4) not recognized file with .c at <src_c> field.");
                     goto err;
                 }
 
                 if(strstr(OUT_H_ARGV,".h") == NULL){
-                    puts("headify-err: not recognized file with .h at <out.h> field.");
+                    puts("headify-err:(c4) not recognized file with .h at <out.h> field.");
                     goto err;
                 }
 
@@ -129,7 +177,7 @@ int main(int argc, char *argv[]){
                 c_file = fopen(SRC_C_ARGV,"r");
         
                 if(!c_file){
-                    perror("headify-err: the .c file doesn't exist or doesn't have enough permissions to read.");
+                    perror("headify-err:(c4) the .c file doesn't exist or doesn't have enough permissions to read.");
                     goto end;
                 }  
 
@@ -145,11 +193,20 @@ int main(int argc, char *argv[]){
 
     }
 
+
+
+
+
+    
     err:
     return EXIT_FAILURE;
 
     end:
-    fclose(c_file);
+
+    if(c_file){
+        fclose(c_file);
+    }
+    
     return 0;
 }
 

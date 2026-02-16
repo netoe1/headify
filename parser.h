@@ -11,103 +11,147 @@
 #define F1_FUNCTION "@function"
 #define F2_COMMENT "@comment"
 
-void parse(FILE *input_loaded,char *input_filename,FILE *output_file,char *output_filename){
+void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *output_filename){
 
-    char *line = NULL;          //  line buffer to use getline()
-    size_t tam = 0;             //  tam as size for line buffer.  
-    char aux[1024] = {0}; 
+    char *line = NULL;
+    size_t tam = 0;
+    char aux[1024] = {0};
 
     // Copy filename to modify
-
     char input_filename_mod[strlen(input_filename) + 1];
     strcpy(input_filename_mod, input_filename);
 
-    // Trim usually "jumps" addresses, this is the reason we should use trimmed instead of input_filename_mod
+    // Trim filename
+    char *trimmed_filename = trim(input_filename_mod);
+    remove_substring(trimmed_filename,".c");
+    to_upper_string(trimmed_filename); 
 
-    char *trimmed = trim(input_filename_mod);
-    remove_substring(trimmed,".c");
-    to_upper_string(trimmed); 
-
-    // Open outputfile and write #ifndef/#define, being the same name written on .c file 
-
+    // Open output file
     output_file = fopen(output_filename,"w");
 
-    // In case of error while opening file
     if(!output_file){
         perror("headify-err-parse(): Cannot open file .h! Aborting...");
         goto end;
     }
     
-    // Writing #ifndef/#define on header file
-    fprintf(output_file,"#ifndef %s_H\n#define %s_H\n",trimmed,trimmed);
+    // Header guards
+    fprintf(output_file,"#ifndef %s_H\n#define %s_H\n",
+            trimmed_filename, trimmed_filename);
 
-    // Starting parse process
+    // Parse loop
     while (getline(&line, &tam, input_loaded) != -1) {  
 
-        // To Global Vars
-        if (strncmp(line, "@variable", 9) == 0) {
+        // ---------------- @variable ----------------
+        if (starts_with(F0_GLOBAL_VARIABLE, line) == 0) {
 
-            strcpy(aux, line);
+            strncpy(aux, line, sizeof(aux)-1);
+            aux[sizeof(aux)-1] = '\0';
+
             remove_char_if_exists(aux, '\n');
-            remove_substring(aux, "@variable");
-            remove_char_if_exists(aux, '{');
+            remove_substring(aux, F0_GLOBAL_VARIABLE);
 
-            char *trimmed = trim(aux);
-            strcpy(aux, trimmed);
+            char *trimmed_aux = trim(aux);
+
             puts("headify-debug-@variable:");
-            puts(aux);
-            fprintf(output_file,"%s\n",aux);
+            puts(trimmed_aux);
+
+            fprintf(output_file,"%s\n",trimmed_aux);
             continue;
         }
 
-        // Testing function name
-        
-        if (strncmp(line, "@function", 9) == 0) {
+        // ---------------- @function ----------------
+        if (starts_with(F1_FUNCTION,line) == 0) {
 
-            strcpy(aux, line);
+            strncpy(aux, line, sizeof(aux)-1);
+            aux[sizeof(aux)-1] = '\0';
+
             remove_char_if_exists(aux, '\n');
-            remove_substring(aux, "@function");
+            remove_substring(aux, F1_FUNCTION);
             remove_char_if_exists(aux, '{');
 
-            char *trimmed = trim(aux);
-            strcpy(aux, trimmed);
-            fprintf(output_file,"%s;\n",aux);
+            char *trimmed_aux = trim(aux);
 
-            // Output 
             puts("headify-debug-@function:");
-            puts(aux);
+            puts(trimmed_aux);
+
+            fprintf(output_file,"%s;\n",trimmed_aux);
             continue;
         }
 
-        // Comments that goes to header
+        // ---------------- @comment ----------------
+        if (starts_with(F2_COMMENT,line) == 0) {
 
-        if (strncmp(line, "@comment", 8) == 0) {
+            strncpy(aux, line, sizeof(aux)-1);
+            aux[sizeof(aux)-1] = '\0';
 
-            strcpy(aux, line);
             remove_char_if_exists(aux, '\n');
-            remove_substring(aux, "@comment");
+            remove_substring(aux, F2_COMMENT);
             remove_char_if_exists(aux, '{');
 
-            char *trimmed = trim(aux);
-            strcpy(aux, trimmed);
-            fprintf(output_file,"%s\n",aux);
+            char *trimmed_aux = trim(aux);
 
-            // Output 
             puts("headify-debug-@comment:");
-            puts(aux);
+            puts(trimmed_aux);
+
+            fprintf(output_file,"%s\n",trimmed_aux);
             continue;
         }
-
     }
     
-    fprintf(output_file,"#endif");
+    fprintf(output_file,"#endif\n");
 
 
-    end:
-    // Free lines and closing output file.
-    // Input file will be closed on int main() from main.c
+    // ---------------------------------------------
+    // SECOND LOOP - CLEANING FLAGS FROM .c FILE
+    // ---------------------------------------------
+
+    rewind(input_loaded);
+    char input_mod[256];
+
+    snprintf(input_mod, sizeof(input_mod), "%s-mod.c", input_filename);
+
+    FILE *clean_c = fopen(input_mod,"w");
+
+    if (!clean_c) {
+        perror("Cannot open cleaned .c file");
+        goto end;
+    }
+
+    // Include .h in source
+    fprintf(clean_c,"#include \"%s\"\n",output_filename);
+
+    while (getline(&line, &tam, input_loaded) != -1) {
+
+        if (starts_with(F0_GLOBAL_VARIABLE, line) == 0) {
+            continue;
+        }
+
+        if (starts_with(F1_FUNCTION, line) == 0) {
+
+            char *content = trim(line + strlen(F1_FUNCTION));
+            fprintf(clean_c, "%s\n", content);
+            continue;
+        }
+
+        if (starts_with(F2_COMMENT, line) == 0) {
+
+            char *content = trim(line + strlen(F2_COMMENT));
+            fprintf(clean_c, "%s\n", content);
+            continue;
+        }
+
+        // linhas normais
+        fprintf(clean_c, "%s", line);
+    }
+
+    fclose(clean_c);
+
+end:
+
     free(line);
-    fclose(output_file);
+
+    if(output_file)
+        fclose(output_file);
 }
 
 #endif
