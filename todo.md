@@ -1,4 +1,4 @@
 # Todo
 
 - Make CLI work (doing)
-- Do parser
+- Do parser (doing)
