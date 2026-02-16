@@ -134,10 +134,6 @@ int main(int argc, char *argv[]){
                 }  
 
                 parse(c_file,SRC_C_ARGV,h_file,OUT_H_ARGV);
-                
-
-
-        
                 goto end;
 
 

@@ -7,6 +7,10 @@
 #include <string.h>
 #include "utils.h"
 
+#define F0_GLOBAL_VARIABLE "@variable"
+#define F1_FUNCTION "@function"
+#define F2_COMMENT "@comment"
+
 void parse(FILE *input_loaded,char *input_filename,FILE *output_file,char *output_filename){
 
     char *line = NULL;          //  line buffer to use getline()
@@ -41,18 +45,18 @@ void parse(FILE *input_loaded,char *input_filename,FILE *output_file,char *outpu
     while (getline(&line, &tam, input_loaded) != -1) {  
 
         // To Global Vars
-        if (strncmp(line, "@global", 7) == 0) {
+        if (strncmp(line, "@variable", 9) == 0) {
 
             strcpy(aux, line);
             remove_char_if_exists(aux, '\n');
-            remove_substring(aux, "@global");
+            remove_substring(aux, "@variable");
             remove_char_if_exists(aux, '{');
 
             char *trimmed = trim(aux);
             strcpy(aux, trimmed);
-            puts("headify-debug-@global:");
+            puts("headify-debug-@variable:");
             puts(aux);
-
+            fprintf(output_file,"%s\n",aux);
             continue;
         }
 
@@ -67,9 +71,29 @@ void parse(FILE *input_loaded,char *input_filename,FILE *output_file,char *outpu
 
             char *trimmed = trim(aux);
             strcpy(aux, trimmed);
+            fprintf(output_file,"%s;\n",aux);
 
             // Output 
             puts("headify-debug-@function:");
+            puts(aux);
+            continue;
+        }
+
+        // Comments that goes to header
+
+        if (strncmp(line, "@comment", 8) == 0) {
+
+            strcpy(aux, line);
+            remove_char_if_exists(aux, '\n');
+            remove_substring(aux, "@comment");
+            remove_char_if_exists(aux, '{');
+
+            char *trimmed = trim(aux);
+            strcpy(aux, trimmed);
+            fprintf(output_file,"%s\n",aux);
+
+            // Output 
+            puts("headify-debug-@comment:");
             puts(aux);
             continue;
         }

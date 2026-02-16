@@ -1,5 +1,6 @@
-@var_global int x = 0;
-@var_global int z = 0;
+@variable int x;
+int c;
 @function void helloWorld(){
-    hello!
+    printf("hello world!");
 }
+@comment // MEU NOME É ENEAS
