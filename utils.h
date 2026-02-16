@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#ifndef UTILS_C
-#define UTILS_C
+#ifndef UTILS_H
+#define UTILS_H
 #include <ctype.h>
 
 char *trim(char *str)
@@ -58,6 +58,12 @@ char *trim(char *str)
 void to_lower_string(char str[]){
     for (int i = 0; str[i] != '\0'; i++) {
         str[i] = tolower(str[i]);
+    }
+}
+
+void to_upper_string(char str[]){
+    for (int i = 0; str[i] != '\0'; i++) {
+        str[i] = toupper(str[i]);
     }
 }
 
@@ -119,4 +125,5 @@ void trim_all_args(int argc,char *argv[]){
          argv[i] = trim(argv[i]);
     }
 }
+
 #endif

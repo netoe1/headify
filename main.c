@@ -28,8 +28,8 @@
 #include <locale.h>
 #include <string.h>
 #include <errno.h>
-#include "utils.c"
-#include "parser.c"
+#include "utils.h"
+#include "parser.h"
 
 #define TTHELP 0
 #define THELP 1
@@ -63,11 +63,7 @@
 FILE *c_file = NULL;
 FILE *h_file = NULL;
 
-
 const char *CONSTS_ARGC2[] = {"--help","-h"};
-
-
-
 
 void show_help(){
     puts("Entrou no help!");
@@ -137,12 +133,11 @@ int main(int argc, char *argv[]){
                     goto end;
                 }  
 
-                parse(c_file);
-
-
-
+                parse(c_file,SRC_C_ARGV,h_file,OUT_H_ARGV);
                 
 
+
+        
                 goto end;
 
 
@@ -158,6 +153,7 @@ int main(int argc, char *argv[]){
     return EXIT_FAILURE;
 
     end:
+    fclose(c_file);
     return 0;
 }
 
