@@ -7,7 +7,7 @@
 #include <string.h>
 #include "utils.h"
 
-#define F0_GLOBAL_VARIABLE "@variable"
+#define F0_GLOBAL_VARIABLE "@var"
 #define F1_FUNCTION "@function"
 #define F2_COMMENT "@comment"
 #define F3_STRUCT "@struct"
@@ -31,8 +31,21 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
     remove_substring(trimmed_filename,".c");
     to_upper_string(trimmed_filename); 
 
-    // Open output file
-    output_file = fopen(output_filename,"w");
+    // Creating .h name to outputFile generated.
+    char temp[256];
+    strncpy(temp, output_filename, sizeof(temp)-1);
+    temp[sizeof(temp)-1] = '\0';
+
+    char *trimmed_output_file = trim(temp);
+
+    char generated_name[256];
+
+    snprintf(generated_name,
+            sizeof(generated_name),
+            "%s-generated.h",
+            trimmed_output_file);
+
+    output_file = fopen(generated_name,"w");
 
     if(!output_file){
         perror("headify-err-parse(): Cannot open file .h! Aborting...");
@@ -119,7 +132,7 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
         }
     }
     
-    fprintf(output_file,"\n#endif\n");
+    fprintf(output_file,"#endif\n");
 
 
     // ---------------------------------------------
@@ -129,7 +142,7 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
     rewind(input_loaded);
     char input_mod[256];
 
-    snprintf(input_mod, sizeof(input_mod), "%s-mod.c", input_filename);
+    snprintf(input_mod, sizeof(input_mod), "%s-generated.c", input_filename);
 
     FILE *clean_c = fopen(input_mod,"w");
 
@@ -139,7 +152,7 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
     }
 
     // Include .h in source
-    fprintf(clean_c,"#include \"%s\"\n",output_filename);
+    fprintf(clean_c,"#include \"%s\"\n",generated_name);
 
     while (getline(&line, &tam, input_loaded) != -1) {
         
