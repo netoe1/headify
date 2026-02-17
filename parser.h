@@ -10,12 +10,17 @@
 #define F0_GLOBAL_VARIABLE "@variable"
 #define F1_FUNCTION "@function"
 #define F2_COMMENT "@comment"
+#define F3_STRUCT "@struct"
+
 
 void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *output_filename){
 
     char *line = NULL;
     size_t tam = 0;
     char aux[1024] = {0};
+
+    int reading_struct = 0;     // Flag for reading struct
+    int skipping_struct = 0;    // Flag for skip struct 
 
     // Copy filename to modify
     char input_filename_mod[strlen(input_filename) + 1];
@@ -40,6 +45,15 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
 
     // Parse loop
     while (getline(&line, &tam, input_loaded) != -1) {  
+
+        // Struct.
+
+        if (reading_struct) {
+            fprintf(output_file,"%s", line);
+        if (strchr(line, '}') != NULL)
+            reading_struct = 0;
+            continue;
+        }
 
         // ---------------- @variable ----------------
         if (starts_with(F0_GLOBAL_VARIABLE, line) == 0) {
@@ -96,9 +110,16 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
             fprintf(output_file,"%s\n",trimmed_aux);
             continue;
         }
+
+        if (starts_with("@struct", line) == 0) {
+            reading_struct = 1;
+            char *content = trim(line + strlen("@struct"));
+            fprintf(output_file,"%s\n", content);
+            continue;
+        }
     }
     
-    fprintf(output_file,"#endif\n");
+    fprintf(output_file,"\n#endif\n");
 
 
     // ---------------------------------------------
@@ -113,7 +134,7 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
     FILE *clean_c = fopen(input_mod,"w");
 
     if (!clean_c) {
-        perror("Cannot open cleaned .c file");
+        perror("headify-err: cannot open cleaned .c file");
         goto end;
     }
 
@@ -121,7 +142,17 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
     fprintf(clean_c,"#include \"%s\"\n",output_filename);
 
     while (getline(&line, &tam, input_loaded) != -1) {
+        
+        if (skipping_struct) {
+          
+            if (strchr(line, '}') != NULL) {
+                skipping_struct = 0;
+            }
 
+            continue; 
+        }
+
+       
         if (starts_with(F0_GLOBAL_VARIABLE, line) == 0) {
             continue;
         }
@@ -140,7 +171,11 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
             continue;
         }
 
-        // linhas normais
+        if (starts_with(F3_STRUCT, line) == 0) {
+            skipping_struct = 1;
+            continue; 
+        }
+
         fprintf(clean_c, "%s", line);
     }
 
