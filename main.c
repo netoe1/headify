@@ -79,7 +79,7 @@ const char *LICENSE =
 "\n"
 "MIT License\n"
 "\n"
-"Copyright (c) 2026 Ely Torres Neto\n"
+"Copyright (c) 2026 Ely Torres Neto / Vertex Project\n"
 "\n"
 "Permission is hereby granted, free of charge, to any person obtaining a copy\n"
 "of this software and associated documentation files (the \"Software\"), to deal\n"
@@ -98,6 +98,9 @@ const char *LICENSE =
 "LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n"
 "OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n"
 "SOFTWARE.\n"
+"It's obrigatory to put CREATOR'S NAME on LICENSE and Autors.\n"
+"Creator is Ely Torres Neto (netoe1). / Vertex Project\n"
+"Autors are people that work in project.\n"
 "\n"
 "\n";
 
@@ -194,10 +197,6 @@ int main(int argc, char *argv[]){
     }
 
 
-
-
-
-    
     err:
     return EXIT_FAILURE;
 

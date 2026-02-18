@@ -59,8 +59,8 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
     // Parse loop
     while (getline(&line, &tam, input_loaded) != -1) {  
 
-        // Struct.
-
+      
+        // States
         if (reading_struct) {
             fprintf(output_file,"%s", line);
         if (strchr(line, '}') != NULL)
@@ -156,12 +156,12 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
 
     while (getline(&line, &tam, input_loaded) != -1) {
         
+        // States
         if (skipping_struct) {
           
             if (strchr(line, '}') != NULL) {
                 skipping_struct = 0;
             }
-
             continue; 
         }
 
