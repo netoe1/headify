@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
 
     if (argc < 1 || argc > 3)
     {
-        puts("headify-err: invalid number of args ");
+        puts("headify-err: invalid number of args, check --help. ");
         goto err;
     }
 
