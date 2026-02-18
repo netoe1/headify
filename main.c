@@ -176,15 +176,10 @@ int main(int argc, char *argv[]){
                 remove_quote(OUT_H_ARGV);
                 remove_quote(SRC_C_ARGV);
 
-                // Open .c file
-                c_file = fopen(SRC_C_ARGV,"r");
         
-                if(!c_file){
-                    perror("headify-err:(c4) the .c file doesn't exist or doesn't have enough permissions to read.");
-                    goto end;
-                }  
+               
 
-                parse(c_file,SRC_C_ARGV,h_file,OUT_H_ARGV);
+                parse(NULL,SRC_C_ARGV,h_file,OUT_H_ARGV);
                 goto end;
 
 

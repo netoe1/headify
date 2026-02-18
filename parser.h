@@ -37,13 +37,21 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
     temp[sizeof(temp)-1] = '\0';
 
     char *trimmed_output_file = trim(temp);
-
     char generated_name[256];
 
     snprintf(generated_name,
             sizeof(generated_name),
             "%s-generated.h",
             trimmed_output_file);
+
+
+    // Opening Files
+    input_loaded = fopen(input_filename,"r");
+
+    if(!input_loaded){
+        perror("headify-err:(c4) the .c file doesn't exist or doesn't have enough permissions to read.");
+        goto end;
+    }  
 
     output_file = fopen(generated_name,"w");
 
@@ -52,6 +60,8 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
         goto end;
     }
     
+    
+    replace_char_if_exists(trimmed_filename,'.','_');
     // Header guards
     fprintf(output_file,"#ifndef %s_H\n#define %s_H\n",
             trimmed_filename, trimmed_filename);
@@ -178,9 +188,8 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
         }
 
         if (starts_with(F2_COMMENT, line) == 0) {
-
-            char *content = trim(line + strlen(F2_COMMENT));
-            fprintf(clean_c, "%s\n", content);
+            //char *content = trim(line + strlen(F2_COMMENT));
+            //fprintf(clean_c, "%s\n", content);
             continue;
         }
 

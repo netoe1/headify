@@ -120,6 +120,14 @@ void remove_quote(char *str){
     //printf("\nAfter quote:%s",str);
 }
 
+void replace_char_if_exists(char *str,char seek,char rep){
+  for(int i = 0; i < sizeof(str);i++){
+    if(str[i] == seek){
+        str[i] = rep;
+    } 
+  }
+}
+
 void trim_all_args(int argc,char *argv[]){
     int i = 0;
     for(i = 1;i < argc;i++){
