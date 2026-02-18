@@ -79,8 +79,8 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
 
             char *trimmed_aux = trim(aux);
 
-            puts("headify-debug-@variable:");
-            puts(trimmed_aux);
+            //puts("headify-debug-@variable:");
+            //puts(trimmed_aux);
 
             fprintf(output_file,"%s\n",trimmed_aux);
             continue;
@@ -98,8 +98,8 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
 
             char *trimmed_aux = trim(aux);
 
-            puts("headify-debug-@function:");
-            puts(trimmed_aux);
+            //puts("headify-debug-@function:");
+            //puts(trimmed_aux);
 
             fprintf(output_file,"%s;\n",trimmed_aux);
             continue;
@@ -117,8 +117,8 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
 
             char *trimmed_aux = trim(aux);
 
-            puts("headify-debug-@comment:");
-            puts(trimmed_aux);
+           // puts("headify-debug-@comment:");
+           // puts(trimmed_aux);
 
             fprintf(output_file,"%s\n",trimmed_aux);
             continue;
