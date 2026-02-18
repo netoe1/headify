@@ -11,6 +11,8 @@
 #define F1_FUNCTION "@function"
 #define F2_COMMENT "@comment"
 #define F3_STRUCT "@struct"
+// To implement
+#define F4_DEFINE "@define"
 
 
 void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *output_filename){
@@ -18,12 +20,13 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
     char *line = NULL;
     size_t tam = 0;
     char aux[1024] = {0};
-
     int reading_struct = 0;     // Flag for reading struct
     int skipping_struct = 0;    // Flag for skip struct 
+    char input_filename_mod[strlen(input_filename) + 1]; // Copy filename to modify
+    char temp[256];             // Temp variable
+    char generated_name[256];   // Generated name
+    char input_mod[256];        // Second loop input_mod name
 
-    // Copy filename to modify
-    char input_filename_mod[strlen(input_filename) + 1];
     strcpy(input_filename_mod, input_filename);
 
     // Trim filename
@@ -32,12 +35,12 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
     to_upper_string(trimmed_filename); 
 
     // Creating .h name to outputFile generated.
-    char temp[256];
+   
     strncpy(temp, output_filename, sizeof(temp)-1);
     temp[sizeof(temp)-1] = '\0';
 
     char *trimmed_output_file = trim(temp);
-    char generated_name[256];
+   
 
     snprintf(generated_name,
             sizeof(generated_name),
@@ -47,13 +50,12 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
 
     // Opening Files
     input_loaded = fopen(input_filename,"r");
+    output_file = fopen(generated_name,"w");
 
     if(!input_loaded){
         perror("headify-err:(c4) the .c file doesn't exist or doesn't have enough permissions to read.");
         goto end;
     }  
-
-    output_file = fopen(generated_name,"w");
 
     if(!output_file){
         perror("headify-err-parse(): Cannot open file .h! Aborting...");
@@ -150,8 +152,6 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
     // ---------------------------------------------
 
     rewind(input_loaded);
-    char input_mod[256];
-
     snprintf(input_mod, sizeof(input_mod), "%s-generated.c", input_filename);
 
     FILE *clean_c = fopen(input_mod,"w");
