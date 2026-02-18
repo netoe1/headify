@@ -70,9 +70,9 @@ const char *help_message =
 "headify - just drag your .c file!\n"
 "autor: Ely Torres Neto (netoe1)\tgithub.com/netoe1\n"
 "==>HELP==============================================================================\n"
-"   --help or -h                          Show valid lines for usage!\n"
-"   --LICENSE                             Display the license, this is currently MIT.\n"
-"   headify generate <src.c> <out.h>      Generates the header file by src.c\n"
+"   --help or -h                                Show valid lines for usage!\n"
+"   --LICENSE                                   Display the license, this is currently MIT.\n"
+"   headify generate <src.headify> <out.h>      Generates the header file by src.c\n"
 ;
 
 const char *LICENSE =
@@ -162,8 +162,8 @@ int main(int argc, char *argv[]){
 
                 // Verifica se o SRC_C possui o .c
 
-                if(strstr(SRC_C_ARGV,".c") == NULL){
-                    puts("headify-err:(c4) not recognized file with .c at <src_c> field.");
+                if(strstr(SRC_C_ARGV,".headify") == NULL){
+                    puts("headify-err:(c4) not recognized file with .headify");
                     goto err;
                 }
 
