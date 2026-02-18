@@ -173,7 +173,7 @@ headify [options] <command> [arguments]
 Generates a header file from a C source file using parser keywords.
 
 ```bash
-headify generate <input.c> <output.h>
+headify generate <input.headify> <output.h>
 ```
 
 **Description**
@@ -189,7 +189,7 @@ headify generate <input.c> <output.h>
 
 |Argument | Description |
 | --------|-------------|
-| `input.c`|  Source C file to be parsed
+| `input.headify`|  Source C file with keywords to be parsed
 | `output.h`| Header file to be generated
 
 **Options**
