@@ -11,7 +11,6 @@
 #define F1_FUNCTION "@function"
 #define F2_COMMENT "@comment"
 #define F3_STRUCT "@struct"
-// To implement
 #define F4_DEFINE "@define"
 
 
@@ -142,6 +141,23 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
             fprintf(output_file,"%s\n", content);
             continue;
         }
+
+        if (starts_with(F4_DEFINE, line) == 0) {
+
+        strcpy(aux, line);
+        remove_char_if_exists(aux, '\n');
+        remove_substring(aux, F4_DEFINE);
+
+        char *trimmed = trim(aux);
+        strcpy(aux, trimmed);
+
+        fprintf(output_file,"#define %s\n", aux);
+
+        // puts("headify-debug-@define:");
+        // puts(aux);
+
+        continue;
+        }
     }
     
     fprintf(output_file,"#endif\n");
@@ -197,6 +213,11 @@ void parse(FILE *input_loaded, char *input_filename, FILE *output_file, char *ou
             skipping_struct = 1;
             continue; 
         }
+
+        if(starts_with(F4_DEFINE,line) == 0){
+            continue;
+        }
+
 
         fprintf(clean_c, "%s", line);
     }

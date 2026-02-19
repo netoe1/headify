@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
     setlocale(LC_ALL, "");
     trim_all_args(argc, argv);
 
-    if (argc < 1 || argc > 3)
+    if (argc < 1 || argc > 4)
     {
         puts("headify-err: invalid number of args, check --help. ");
         goto err;

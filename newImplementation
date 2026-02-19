@@ -1,0 +1,161 @@
+#ifndef PARSER_PRO_H
+#define PARSER_PRO_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "utils.h"
+
+#define F0_GLOBAL_VARIABLE "@var"
+#define F1_FUNCTION "@function"
+#define F2_COMMENT "@comment"
+#define F3_STRUCT "@struct"
+#define F4_DEFINE "@define"
+
+typedef void (*HandlerFunc)(char *line, FILE *out_h, FILE *out_c);
+
+typedef struct {
+    const char *keyword;
+    HandlerFunc handler;
+} ParserRule;
+
+/* ---------------- HANDLERS ---------------- */
+
+void handle_define(char *line, FILE *out_h, FILE *out_c)
+{
+    char aux[1024];
+
+    strncpy(aux,line,sizeof(aux)-1);
+    aux[sizeof(aux)-1] = '\0';
+
+    remove_substring(aux,F4_DEFINE);
+
+    char *content = trim(aux);
+
+    fprintf(out_h,"#define %s\n",content);
+
+    // NÃO escreve no .c
+}
+
+void handle_variable(char *line, FILE *out_h, FILE *out_c)
+{
+    char aux[1024];
+
+    strncpy(aux,line,sizeof(aux)-1);
+    aux[sizeof(aux)-1] = '\0';
+
+    remove_substring(aux,F0_GLOBAL_VARIABLE);
+
+    char *content = trim(aux);
+
+    fprintf(out_h,"%s\n",content);
+
+    // remove do .c
+}
+
+void handle_comment(char *line, FILE *out_h, FILE *out_c)
+{
+    char aux[1024];
+
+    strncpy(aux,line,sizeof(aux)-1);
+    aux[sizeof(aux)-1] = '\0';
+
+    remove_substring(aux,F2_COMMENT);
+
+    char *content = trim(aux);
+
+    fprintf(out_h,"%s\n",content);
+
+    // remove do .c
+}
+
+void handle_function(char *line, FILE *out_h, FILE *out_c)
+{
+    char aux[1024];
+
+    strncpy(aux,line,sizeof(aux)-1);
+    aux[sizeof(aux)-1] = '\0';
+
+    remove_substring(aux,F1_FUNCTION);
+    remove_char_if_exists(aux,'{');
+
+    char *content = trim(aux);
+
+    fprintf(out_h,"%s;\n",content);
+    fprintf(out_c,"%s\n",content);
+}
+
+/* ---------------- RULE TABLE ---------------- */
+
+ParserRule rules[] = {
+
+    {F0_GLOBAL_VARIABLE, handle_variable},
+    {F1_FUNCTION, handle_function},
+    {F2_COMMENT, handle_comment},
+    {F4_DEFINE, handle_define},
+};
+
+#define RULE_COUNT (sizeof(rules)/sizeof(rules[0]))
+
+/* ---------------- PARSER ---------------- */
+
+void parse(const char *input_filename)
+{
+    FILE *input = fopen(input_filename,"r");
+
+    if(!input)
+    {
+        perror("cannot open input");
+        return;
+    }
+
+    char header_name[256];
+    snprintf(header_name,sizeof(header_name),"%s-generated.h",input_filename);
+
+    FILE *out_h = fopen(header_name,"w");
+
+    char c_name[256];
+    snprintf(c_name,sizeof(c_name),"%s-generated.c",input_filename);
+
+    FILE *out_c = fopen(c_name,"w");
+
+    if(!out_h || !out_c)
+    {
+        perror("cannot open outputs");
+        fclose(input);
+        return;
+    }
+
+    fprintf(out_c,"#include \"%s\"\n",header_name);
+
+    char *line = NULL;
+    size_t tam = 0;
+
+    while(getline(&line,&tam,input) != -1)
+    {
+        int handled = 0;
+
+        for(size_t i=0;i<RULE_COUNT;i++)
+        {
+            if(starts_with(rules[i].keyword,line)==0)
+            {
+                rules[i].handler(line,out_h,out_c);
+                handled = 1;
+                break;
+            }
+        }
+
+        if(!handled)
+            fprintf(out_c,"%s",line);
+    }
+
+    fprintf(out_h,"#endif\n");
+
+    free(line);
+
+    fclose(input);
+    fclose(out_h);
+    fclose(out_c);
+}
+
+#endif
