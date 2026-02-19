@@ -70,7 +70,7 @@ const char *help_message =
     "==>HELP==============================================================================\n"
     "   --help or -h                                Show valid lines for usage!\n"
     "   --LICENSE                                   Display the license, this is currently MIT.\n"
-    "   headify generate <src.headify> <out.h>      Generates the header file by src.c\n";
+    "   headify generate <src.headify> <out.h>      Generates the header file by source.headify.c\n";
 
 const char *LICENSE =
     "\n"
