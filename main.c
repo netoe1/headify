@@ -1,204 +1,72 @@
-/*
- * MIT License
- *
- * Copyright (c) 2026 Ely Torres Neto
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
-
 #include <stdio.h>
 #include <stdlib.h>
-#include <locale.h>
 #include <string.h>
-#include <errno.h>
-#include "utils.h"
+
 #include "parser.h"
 
-#define or ||
-#define and &&
-
-// Alias
-#define LICENSE_ARGV argv[1]
-#define GENERATE_ARGV argv[1]
-#define SRC_C_ARGV argv[2]
-#define OUT_H_ARGV argv[3]
-#define HELP_ARGV argv[1]
-#define MATCH 0
-
-// STR
-#define HELP_STR1 "--help"
-#define HELP_STR2 "-h"
-#define LICENSE_STR "--LICENSE"
-#define GENERATE_STR "generate"
-
-/*
-    DEFINING BEHAVIOR:
-
-    ARGC = 3
-        - headify generate <src.c> <out.h>
-    ARGC = 2
-        - headify --help or -h
-    ARGC = 1
-        - headify
-*/
-
-// Global Variables
-
-FILE *c_file = NULL;
-FILE *h_file = NULL;
-
-const char *help_message =
-    "headify - just drag your .c file!\n"
-    "autor: Ely Torres Neto (netoe1)\tgithub.com/netoe1\n"
-    "==>HELP==============================================================================\n"
-    "   --help or -h                                Show valid lines for usage!\n"
-    "   --LICENSE                                   Display the license, this is currently MIT.\n"
-    "   headify generate <src.headify> <out.h>      Generates the header file by source.headify.c\n";
-
-const char *LICENSE =
-    "\n"
-    "MIT License\n"
-    "\n"
-    "Copyright (c) 2026 Ely Torres Neto / Vertex Project\n"
-    "\n"
-    "Permission is hereby granted, free of charge, to any person obtaining a copy\n"
-    "of this software and associated documentation files (the \"Software\"), to deal\n"
-    "in the Software without restriction, including without limitation the rights\n"
-    "to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n"
-    "copies of the Software, and to permit persons to whom the Software is\n"
-    "furnished to do so, subject to the following conditions:\n"
-    "\n"
-    "The above copyright notice and this permission notice shall be included in all\n"
-    "copies or substantial portions of the Software.\n"
-    "\n"
-    "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n"
-    "IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n"
-    "FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n"
-    "AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n"
-    "LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n"
-    "OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n"
-    "SOFTWARE.\n"
-    "It's obrigatory to put CREATOR'S NAME on LICENSE and Autors.\n"
-    "Creator is Ely Torres Neto (netoe1). / Vertex Project\n"
-    "Autors are people that work in project.\n"
-    "\n"
-    "\n";
-
-void show_help()
+static void show_help(const char *program)
 {
-    puts(help_message);
+    printf("Usage:\n"
+           "  %s --help | -h\n"
+           "  %s --LICENSE\n"
+           "  %s generate <input.headify> <output.h>\n\n"
+           "Reads annotations in a source file and creates the requested header\n"
+           "plus an <input.headify>-generated.c file with exported annotations removed.\n\n"
+           "Annotations: @var, @function, @comment, @struct, @define\n",
+           program, program, program);
 }
 
-void show_license()
+static void show_license(void)
 {
-    puts(LICENSE);
+    puts("MIT License\n\n"
+         "Copyright (c) 2026 Ely Torres Neto / Vertex Project\n\n"
+         "Permission is hereby granted, free of charge, to any person obtaining a copy\n"
+         "of this software and associated documentation files (the \"Software\"), to deal\n"
+         "in the Software without restriction, including without limitation the rights\n"
+         "to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n"
+         "copies of the Software, and to permit persons to whom the Software is\n"
+         "furnished to do so, subject to the following conditions:\n\n"
+         "The above copyright notice and this permission notice shall be included in all\n"
+         "copies or substantial portions of the Software.\n\n"
+         "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n"
+         "IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n"
+         "FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n"
+         "AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n"
+         "LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n"
+         "OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n"
+         "SOFTWARE.");
 }
 
-int main(int argc, char *argv[])
+static int has_suffix(const char *filename, const char *suffix)
 {
-    setlocale(LC_ALL, "");
-    trim_all_args(argc, argv);
+    size_t filename_length = strlen(filename);
+    size_t suffix_length = strlen(suffix);
+    return filename_length >= suffix_length &&
+           strcmp(filename + filename_length - suffix_length, suffix) == 0;
+}
 
-    if (argc < 1 || argc > 4)
-    {
-        puts("headify-err: invalid number of args, check --help. ");
-        goto err;
+int main(int argc, char **argv)
+{
+    if (argc == 2 && (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)) {
+        show_help(argv[0]);
+        return EXIT_SUCCESS;
     }
-
-    if (argc == 1)
-    {
-        puts("headify-err(c1): command not recognized! Check --help!");
+    if (argc == 2 && strcmp(argv[1], "--LICENSE") == 0) {
+        show_license();
+        return EXIT_SUCCESS;
+    }
+    if (argc != 4 || strcmp(argv[1], "generate") != 0) {
+        show_help(argv[0]);
+        return EXIT_FAILURE;
+    }
+    if (!has_suffix(argv[2], ".headify")) {
+        fprintf(stderr, "headify: input file must end with .headify: %s\n", argv[2]);
+        return EXIT_FAILURE;
+    }
+    if (!has_suffix(argv[3], ".h")) {
+        fprintf(stderr, "headify: output file must end with .h: %s\n", argv[3]);
         return EXIT_FAILURE;
     }
 
-    if (argc == 2)
-    {
-
-        // Tratando caso --help ou --h
-        if (
-            strcmp(HELP_STR1, HELP_ARGV) == MATCH or strcmp(HELP_STR2, HELP_ARGV) == MATCH)
-        {
-
-            show_help();
-            goto end;
-        }
-
-        if (strcmp(LICENSE_STR, LICENSE_ARGV) == MATCH)
-        {
-            show_license();
-            goto end;
-        }
-
-        puts("headify-err(c2): command not recognized! Check --help!");
-        goto err;
-    }
-
-    if (argc == 3)
-    {
-        puts("headify-err(c3): command not recognized! Check --help!");
-        goto err;
-    }
-
-    if (argc == 4)
-    {
-
-        to_lower_string(GENERATE_ARGV);
-
-        if (strcmp(GENERATE_ARGV, GENERATE_STR) == MATCH)
-        {
-
-            // Verifica se o SRC_C possui o .c
-
-            if (strstr(SRC_C_ARGV, ".headify") == NULL)
-            {
-                puts("headify-err:(c4) not recognized file with .headify");
-                goto err;
-            }
-
-            if (strstr(OUT_H_ARGV, ".h") == NULL)
-            {
-                puts("headify-err:(c4) not recognized file with .h at <out.h> field.");
-                goto err;
-            }
-
-            // Removing quotes from path's
-            remove_quote(OUT_H_ARGV);
-            remove_quote(SRC_C_ARGV);
-
-            parse(NULL, SRC_C_ARGV, h_file, OUT_H_ARGV);
-            goto end;
-        }
-
-        puts("headify-err:(c4) command not recognized! Check --help!");
-        goto err;
-    }
-
-err:
-    return EXIT_FAILURE;
-
-end:
-
-    if (c_file)
-    {
-        fclose(c_file);
-    }
-
-    return 0;
+    return headify_parse(argv[2], argv[3]) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

@@ -18,6 +18,7 @@ Keywords are used to things that you want to show at .h file, here are the table
 | `@function`  | Function        | Marks a function to automatically generate a prototype    | Generates function prototype (`;`)     | Removes only `@function`, keeps the code    |
 | `@comment`   | Comment         | Comment that should appear in the header file             | Copies comment to `.h`                 | Entire line removed from `.c`               |
 | `@struct`    | Struct          | Marks a struct definition for export                      | Copies full struct to `.h`             | Entire struct removed from `.c`             |
+| `@define`    | Macro           | Marks a macro for export                                  | Adds a `#define`                       | Entire line removed from `.c`               |
               
 
 # Keywords-usage
@@ -178,13 +179,14 @@ headify generate <input.headify> <output.h>
 
 **Description**
 
-- Parses the input `.c` file.
+- Parses the input `.headify` file.
 
-- Detects special keywords (`@var`, `@function`, `@comment`, `@struct`).
+- Detects special keywords (`@var`, `@function`, `@comment`, `@struct`, `@define`).
 
-- Generates a header file containing extracted declarations.
+- Generates the header at the exact `<output.h>` path supplied.
 
-- Optionally cleans the original `.c` file depending on parser configuration. (will be implemented)
+- Generates a cleaned source file beside the input, named `<input.headify>-generated.c`.
+- Adds an include of the generated header to the cleaned source file.
 
 
 |Argument | Description |
@@ -201,6 +203,8 @@ Display Usage instructions and available commands.
 headify --help or headify -h
 ```
 
+Build the CLI with `make`; remove its executable with `make clean`.
+
 `--LICENSE`
 Displays the software license information.
 
@@ -211,7 +215,7 @@ headify --LICENSE
 
 
 # Final Considerations:
-- Keywords must appear at the beginning of the line.
+- Keywords may be preceded by whitespace, but must otherwise start the line.
 
 - The parser reads the file sequentially (single-pass).
 

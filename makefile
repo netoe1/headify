@@ -1,10 +1,13 @@
-PROGRAM_NAME= headify
-MAIN= main
-CC= gcc
+PROGRAM_NAME := headify
+CC ?= cc
+CFLAGS ?= -std=c11 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -Wpedantic
 
-all:
+.PHONY: all clean
 
-	${CC} -o ${PROGRAM_NAME} ${MAIN}.c
+all: $(PROGRAM_NAME)
+
+$(PROGRAM_NAME): main.c parser.h
+	$(CC) $(CFLAGS) -o $@ main.c
 
 clean:
-	rm -f headify main
+	rm -f $(PROGRAM_NAME) main
