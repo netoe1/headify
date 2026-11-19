@@ -1,229 +1,127 @@
-# headify
-CLI Tool that generates .h, only with .c files.
+# Headify
 
+Headify é uma ferramenta de linha de comando em C que extrai declarações de arquivos-fonte anotados e gera um arquivo de cabeçalho (`.h`) e uma cópia processada do fonte (`.c`). As anotações são palavras-chave colocadas no próprio código.
 
-# Introduction and Motivation
-I'm a guy that likes C/C++, but usually, I don't like do makefiles and this kind of stuff. I Think it's boring.
-So, to fix these problems, I've invented headify.
-Basically, everything you need to do, at this point, is use keywords to generates .h file, while you programming .c file.
-After, just use CLI to generate .h.
+## Requisitos
 
-# Keywords:
-It's easier to implement keywords instead of parser; parser is a complex project, and for this propouse, doesn't have to be complex or complete to use, not at this point.
-Keywords are used to things that you want to show at .h file, here are the tables.
+- Um compilador C com suporte a C11 e à função POSIX `getline`.
+- `make` para compilar usando o arquivo `makefile` incluído.
 
-| Keyword      | Type            | Description                                                | Behavior in `.h`                        | Behavior in `.c`                            |
-|--------------|-----------------|------------------------------------------------------------|----------------------------------------|---------------------------------------------|
-| `@var`  | Global variable | Marks a global variable to be exported to the header file | Adds the variable declaration          | Entire line removed from `.c`               |
-| `@function`  | Function        | Marks a function to automatically generate a prototype    | Generates function prototype (`;`)     | Removes only `@function`, keeps the code    |
-| `@comment`   | Comment         | Comment that should appear in the header file             | Copies comment to `.h`                 | Entire line removed from `.c`               |
-| `@struct`    | Struct          | Marks a struct definition for export                      | Copies full struct to `.h`             | Entire struct removed from `.c`             |
-| `@define`    | Macro           | Marks a macro for export                                  | Adds a `#define`                       | Entire line removed from `.c`               |
-              
+## Compilar
 
-# Keywords-usage
-- **@var**: To variables in general. If you want to show at .h, make sure that **@var** is before the variable declaration.
+Na raiz do repositório, execute:
 
-```c
-// At .c original that you wrote file.
-@var int a = 0;
+```sh
+make
 ```
 
-```c
-// At .h file
-// Expected behavior for .h:
-#ifndef FILE_H
-#define FILE_H
-int a = 0;
-#endif
+Isso cria o executável `headify`. Para removê-lo:
+
+```sh
+make clean
 ```
 
+## Uso
 
-```c
-// At .c generated file
-// Expected behavior for .c generated:
-#include "file.h"
-// You put int a = 0 at .h file. It was deleted from .c.
+```sh
+./headify generate <entrada.headify> <saida.h>
 ```
----
 
-- **@function**: Only shows the prototip for function in .h, in .c, implements.
+Exemplo:
 
+```sh
+./headify generate src/math.headify include/math.h
+```
+
+O comando cria:
+
+- `include/math.h`, no caminho informado;
+- `src/math.headify-generated.c`, ao lado do arquivo de entrada. Esse fonte inclui `math.h` pelo nome.
+
+Os diretórios de saída precisam existir antes da execução. O arquivo de entrada deve terminar em `.headify`, e o caminho do cabeçalho em `.h`.
+
+Ajuda e licença:
+
+```sh
+./headify --help
+./headify -h
+./headify --LICENSE
+```
+
+## Anotações disponíveis
+
+Uma anotação pode ter espaços ou tabulações antes dela, mas deve ser o primeiro conteúdo da linha.
+
+| Anotação | Resultado no cabeçalho | Resultado no fonte gerado |
+| --- | --- | --- |
+| `@var` | Copia o restante da linha como declaração | Remove a linha |
+| `@function` | Gera um protótipo a partir da assinatura | Remove `@function` e mantém a função |
+| `@comment` | Copia o restante da linha como comentário | Remove a linha |
+| `@struct` | Copia a definição da struct até o fechamento | Remove a definição |
+| `@define` | Converte o restante da linha em `#define` | Remove a linha |
+
+### Variável global
 
 ```c
-// .c original file.
+@var extern int total;
+```
 
-#include <stdio.h>
-@function void helloWorld(){
-    printf("Welcome to the jungle, we got fun in games!\n");
+O cabeçalho recebe `extern int total;`. A linha anotada não aparece no fonte gerado; coloque a definição da variável em outro ponto do projeto quando necessário.
+
+### Função
+
+```c
+@function int soma(int a, int b) {
+    return a + b;
 }
 ```
 
+O cabeçalho recebe:
+
 ```c
-// .h generated file.
-
-#ifndef FILE_H
-#define FILE_H
-
-void helloWorld();
-#endif
+int soma(int a, int b);
 ```
 
+O fonte gerado mantém a implementação, removendo o marcador.
+
+### Comentário para o cabeçalho
+
 ```c
-// .c generated file.
-
-#include <stdio.h>
-#include "file.h"
-
-void helloWorld(){
-    printf("Welcome to the jungle, we got fun in games!\n");
+@comment // Soma dois valores inteiros.
+@function int soma(int a, int b) {
+    return a + b;
 }
 ```
 
----
+O comentário é colocado no cabeçalho; a linha `@comment` é omitida do fonte gerado.
 
-- **@comment**: A commentary if you want to put in .h file.
-
-```c
-// .c original file.
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-
-@comment // This is a function that prints random numbers
-@function void get_random(int limit){
-    srand(time(NULL));
-    return rand() % limit;
-}
-```
+### Struct
 
 ```c
-// .h generated file.
-#ifndef FILE_H
-#define FILE_H
-
-// This is a function that prints random numbers
-void get_random(int limit);
-
-#endif
-```
-
-```c
-// .c generated file.
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include "file.h"
-
-
-void get_random(int limit){
-    srand(time(NULL));
-    return rand() % limit;
-}
-```
-
----
-
-- **@struct**: struct to put on .h file.
-
-```c
-// .c original file.
-
-@struct struct Person{
-    char name[64];
-    int age;
+@struct struct Pessoa {
+    char nome[64];
+    int idade;
 };
-
 ```
+
+A definição completa é copiada para o cabeçalho e removida do fonte gerado.
+
+### Macro
 
 ```c
-// .h generated file.
-#ifndef FILE_H
-#define FILE_H
-
-struct Person{
-    char name[64];
-    int age;
-};
-#endif
+@define MAX_ITENS 128
 ```
 
-```c
-// .c generated file.
-#include "file.h"
-// Struct was removed.
-```
+O cabeçalho recebe `#define MAX_ITENS 128`.
 
+## Limitações
 
+- O Headify processa o arquivo linha a linha; não é um parser completo da linguagem C.
+- A assinatura marcada com `@function` deve estar na mesma linha que o marcador. A implementação pode continuar nas linhas seguintes.
+- O reconhecimento do fim de funções e structs usa chaves (`{` e `}`) e não interpreta comentários ou literais que contenham esses caracteres.
+- `@var` copia a linha para o cabeçalho e a remove do fonte gerado. Inicializadores nessa linha também vão para o cabeçalho; em projetos com várias unidades de compilação, prefira uma declaração `extern` e mantenha a definição em um arquivo-fonte.
+- O fonte gerado inclui o cabeçalho apenas pelo nome do arquivo. Organize os diretórios ou inclua caminhos de busca adequados ao compilar o projeto.
 
-# Headify CLI Options
+## Licença
 
-The Headify CLI provides commands and options to generate header files automatically from annotated C source files.
-
----
-
-## Usage
-
-```bash
-headify [options] <command> [arguments]
-```
-
-## Commands
-
-`generate`
-Generates a header file from a C source file using parser keywords.
-
-```bash
-headify generate <input.headify> <output.h>
-```
-
-**Description**
-
-- Parses the input `.headify` file.
-
-- Detects special keywords (`@var`, `@function`, `@comment`, `@struct`, `@define`).
-
-- Generates the header at the exact `<output.h>` path supplied.
-
-- Generates a cleaned source file beside the input, named `<input.headify>-generated.c`.
-- Adds an include of the generated header to the cleaned source file.
-
-
-|Argument | Description |
-| --------|-------------|
-| `input.headify`|  Source C file with keywords to be parsed
-| `output.h`| Header file to be generated
-
-**Options**
-
-`-h` or `--help`
-
-Display Usage instructions and available commands.
-```bash
-headify --help or headify -h
-```
-
-Build the CLI with `make`; remove its executable with `make clean`.
-
-`--LICENSE`
-Displays the software license information.
-
-```bash
-headify --LICENSE
-```
-
-
-
-# Final Considerations:
-- Keywords may be preceded by whitespace, but must otherwise start the line.
-
-- The parser reads the file sequentially (single-pass).
-
-- Generated header guards are based on the source filename.
-
-- The tool may generate cleaned versions of source files depending on configuration.
-
-# To fork:
-
-Just fork, but don't broke the LICENSE requisitions.
-Remember to put my name as the creator and the autors (people that work on project), in LICENSE!
+Distribuído sob a licença MIT. Consulte [LICENSE](LICENSE) para o texto completo e as informações de autoria.
